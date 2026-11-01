@@ -8,15 +8,15 @@ thử rồi mới sang Phase sau.
 
 ---
 
-## 0. Mindset: từ XML + MVVM + MVRx sang Compose
+## 0. Mindset: từ XML + MVVM sang Compose
 
 Bạn giữ lại gần như toàn bộ kiến thức cũ. Chỉ đổi tầng View.
 
 | Cũ (của bạn) | Mới (Compose) |
 |---|---|
 | ViewModel + MVVM | **Giữ nguyên** |
-| MVRx: immutable state + `Async<T>` | → `StateFlow<UiState>` + `sealed interface` tự viết |
-| `invalidate()` / subscribe state | → `collectAsStateWithLifecycle()` |
+| LiveData / observe UI | → `StateFlow<UiState>` + `collectAsStateWithLifecycle()` |
+| State rải rác nhiều field | → 1 `data class UiState` bất biến (single source of truth) |
 | XML + findViewById + ViewBinding | → hàm `@Composable` (Kotlin thuần) |
 | RecyclerView + Adapter + DiffUtil | → `LazyColumn` / `LazyVerticalGrid` |
 | Fragment + FragmentManager | → 1 Activity + `NavHost` (single-activity) |
@@ -45,9 +45,9 @@ Thêm vào `[versions]`:
 coroutines = "1.9.0"
 lifecycleViewmodelCompose = "2.9.0"
 navigationCompose = "2.8.5"
-hilt = "2.52"
+hilt = "2.59.2"             # cần >= 2.59 để tương thích AGP 9
 hiltNavigationCompose = "1.2.0"
-ksp = "2.2.10-1.0.29"          # phải khớp Kotlin 2.2.10
+ksp = "2.2.10-2.0.2"           # phải khớp Kotlin 2.2.10 (format: <kotlin>-<ksp>)
 retrofit = "2.11.0"
 okhttp = "4.12.0"
 kotlinxSerialization = "1.7.3"
@@ -188,7 +188,7 @@ VideoApp.kt                 # Application + @HiltAndroidApp
 MainActivity.kt             # 1 Activity duy nhất
 
 core/
-  Result.kt                 # sealed interface thay cho Async<T> của MVRx
+  Result.kt                 # sealed interface mô tả trạng thái (Loading/Success/Error)
 
 data/
   remote/
@@ -362,7 +362,7 @@ interface VideoRepository {
     fun generateVideo(imageBytes: ByteArray, fileName: String, prompt: String): Flow<GenProgress>
 }
 ```
-> `Flow<GenProgress>` thay cho `Async<T>` của MVRx — nhưng mạnh hơn: emit được nhiều lần (Uploading → Processing 10% → 40% → ... → Done). UI chỉ việc render giá trị mới nhất.
+> `Flow<GenProgress>` cho phép emit nhiều lần (Uploading → Processing 10% → 40% → ... → Done). UI chỉ việc render giá trị mới nhất — hợp hoàn hảo với polling.
 
 ### 5c. `data/repository/VideoRepositoryImpl.kt`
 ```kotlin
@@ -467,7 +467,7 @@ data class GenerateUiState(
     val canSubmit: Boolean get() = selectedImage != null && !isBusy
 }
 ```
-> Đây chính là "state class" kiểu MVRx — một `data class` bất biến, mọi thứ UI cần đều nằm trong đây.
+> Một `data class` bất biến gom mọi thứ UI cần (single source of truth). ViewModel chỉ tạo bản copy mới mỗi khi state đổi.
 
 ### 6b. `ui/generate/GenerateViewModel.kt`
 ```kotlin
@@ -523,8 +523,8 @@ class GenerateViewModel @Inject constructor(
 }
 ```
 **Điểm học:**
-- `MutableStateFlow` + `_uiState.update { it.copy(...) }` = cách cập nhật state bất biến (giống `setState` của MVRx).
-- `viewModelScope.launch` = coroutine tự hủy khi ViewModel chết (giống `disposable` của Rx nhưng tự động).
+- `MutableStateFlow` + `_uiState.update { it.copy(...) }` = cách cập nhật state bất biến (tạo bản copy mới, không sửa tại chỗ).
+- `viewModelScope.launch` = coroutine tự hủy khi ViewModel chết (không lo leak, không cần quản lý thủ công).
 - `.collect { }` = lắng nghe từng emit của Flow polling.
 
 ---
