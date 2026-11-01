@@ -56,34 +56,14 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
 
-    // Navigation
+    // Navigation (type-safe routes)
     implementation(libs.androidx.navigation.compose)
+    implementation(libs.kotlinx.serialization.json)
 
     // Hilt
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
-
-    // Network
-    implementation(libs.retrofit)
-    implementation(libs.okhttp)
-    implementation(libs.okhttp.logging)
-    implementation(libs.kotlinx.serialization.json)
-    implementation(libs.retrofit.serialization.converter)
-
-    // Image
-    implementation(libs.coil.compose)
-
-    // Video
-    implementation(libs.androidx.media3.exoplayer)
-    implementation(libs.androidx.media3.ui)
-
-    // Storage + background
-    implementation(libs.androidx.datastore.preferences)
-    implementation(libs.androidx.work.runtime.ktx)
-
-    // Permissions
-    implementation(libs.accompanist.permissions)
 
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))

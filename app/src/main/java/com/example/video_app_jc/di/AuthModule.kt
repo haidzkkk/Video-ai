@@ -1,7 +1,7 @@
 package com.example.video_app_jc.di
 
-import com.example.video_app_jc.data.repository.VideoRepository
-import com.example.video_app_jc.data.repository.VideoRepositoryImpl
+import com.example.video_app_jc.data.auth.AuthRepository
+import com.example.video_app_jc.data.auth.AuthRepositoryImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -10,9 +10,9 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-abstract class RepositoryModule {
+abstract class AuthModule {
 
     @Binds
     @Singleton
-    abstract fun bindVideoRepository(impl: VideoRepositoryImpl): VideoRepository
+    abstract fun bindAuthRepository(impl: AuthRepositoryImpl): AuthRepository
 }
